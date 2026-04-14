@@ -1,53 +1,757 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Music Game</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Western Music History Quest</title>
+  <style>
+    :root{
+      --bg1:#7a1439;
+      --bg2:#3d1733;
+      --bg3:#1f1a47;
+      --bg4:#0e1026;
+      --panel:rgba(255,255,255,.10);
+      --panel-2:rgba(255,255,255,.14);
+      --line:rgba(255,255,255,.18);
+      --text:#fff8f2;
+      --muted:rgba(255,248,242,.75);
+      --gold:#ffd76c;
+      --pink:#ff69b4;
+      --cyan:#91e8ff;
+      --green:#82f3b0;
+      --red:#ff819d;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family: Inter, Arial, sans-serif;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(255,255,255,.20), transparent 20%),
+        linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 28%, var(--bg3) 58%, var(--bg4) 100%);
+      overflow-x:hidden;
+    }
+
+    .curtain{
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 4.8%, rgba(0,0,0,.08) 4.8% 5.2%),
+        linear-gradient(180deg, rgba(125,18,54,.85) 0%, rgba(79,11,36,.60) 10%, transparent 28%);
+    }
+
+    .floor{
+      position:fixed; left:0; right:0; bottom:0; height:22vh; z-index:0; pointer-events:none;
+      background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,.20) 25%, rgba(0,0,0,.45) 100%);
+      box-shadow:inset 0 24px 60px rgba(0,0,0,.45);
+    }
+
+    .container{
+      position:relative; z-index:1;
+      padding:18px;
+      min-height:100vh;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      backdrop-filter: blur(12px);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      padding:14px 16px; margin-bottom:16px;
+    }
+
+    .progress-wrap{flex:1; min-width:260px}
+    .small{font-size:12px; color:var(--muted)}
+    .bar{
+      height:12px; background:rgba(255,255,255,.15);
+      border-radius:999px; overflow:hidden; margin-top:8px;
+    }
+    .fill{
+      height:100%;
+      background:linear-gradient(90deg,var(--gold),var(--pink),var(--cyan));
+      transition:width .3s ease;
+    }
+
+    .stats{display:flex; gap:10px; flex-wrap:wrap}
+    .pill{
+      min-width:110px; padding:10px 12px;
+      border-radius:16px;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+    }
+    .pill b{display:block; font-size:20px; margin-top:3px}
+
+    .layout{
+      display:grid;
+      grid-template-columns:240px 1fr 240px;
+      gap:16px;
+      align-items:start;
+    }
+
+    .char{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .role{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.22em;
+      color:var(--muted);
+    }
+
+    .name{
+      font-size:28px;
+      font-weight:900;
+      line-height:1.1;
+      margin-top:4px;
+    }
+
+    .figure{
+      min-height:250px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.15);
+      background:
+        radial-gradient(circle at 50% 20%, rgba(255,255,255,.18), transparent 22%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.10));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .avatar{
+      width:140px; height:140px; border-radius:50%;
+      display:grid; place-items:center;
+      font-size:74px; font-weight:900;
+      box-shadow:0 0 35px rgba(0,0,0,.22);
+    }
+
+    .figaro .avatar{
+      background:linear-gradient(135deg,#7ae3ff,#90f2bf);
+      color:#193148;
+    }
+
+    .devil .avatar{
+      background:linear-gradient(135deg,#190d19,#771836);
+      color:#ffe4ec;
+      animation:breath 3s ease-in-out infinite;
+    }
+
+    .devil-eye{
+      position:absolute;
+      width:16px; height:16px;
+      border-radius:50%;
+      background:#ff315f;
+      box-shadow:0 0 12px #ff315f, 0 0 28px #ff315f;
+      animation:glow 1.5s infinite;
+      top:46%;
+    }
+    .devil-eye.left{left:42%}
+    .devil-eye.right{left:54%}
+
+    @keyframes breath{
+      0%,100%{transform:translateY(0) scale(1)}
+      50%{transform:translateY(-4px) scale(1.02)}
+    }
+    @keyframes glow{
+      0%,100%{opacity:.45; transform:scale(.85)}
+      50%{opacity:1; transform:scale(1.18)}
+    }
+
+    .bubble{
+      padding:12px 14px;
+      border-radius:16px;
+      line-height:1.55;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .bubble.hint{
+      background:linear-gradient(135deg, rgba(130,243,176,.12), rgba(145,232,255,.14));
+      border-color:rgba(191,247,214,.35);
+    }
+
+    .center{
+      padding:18px;
+    }
+
+    .dialogue{
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(10,10,25,.28);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .qbox{
+      margin-top:14px;
+      padding:22px;
+      border-radius:22px;
+      background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.14);
+    }
+
+    .section{
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.22em;
+      color:var(--muted);
+    }
+
+    .piece{
+      margin-top:8px;
+      color:#fff2ba;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .question{
+      margin-top:10px;
+      font-size:30px;
+      line-height:1.18;
+      font-weight:900;
+    }
+
+    .audio-box{
+      margin-top:14px;
+      padding:14px;
+      border-radius:18px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .audio-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+
+    input[type="file"]{
+      color:var(--text);
+      max-width:100%;
+    }
+
+    audio{
+      width:min(100%, 420px);
+    }
+
+    .answers{
+      display:grid;
+      gap:12px;
+      margin-top:16px;
+    }
+
+    .answer{
+      width:100%;
+      text-align:left;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:16px 18px;
+      font-size:18px;
+      color:var(--text);
+      background:linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.08));
+      border:1px solid rgba(255,255,255,.14);
+      transition:.18s transform,.18s background;
+    }
+
+    .answer:hover{
+      transform:translateY(-2px) scale(1.01);
+      background:rgba(255,255,255,.18);
+    }
+
+    .answer:disabled{
+      opacity:.72;
+      cursor:default;
+    }
+
+    .feedback{
+      min-height:58px;
+      margin-top:14px;
+      padding:12px 14px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      font-weight:800;
+    }
+
+    .good{
+      background:rgba(29,81,53,.68);
+      border:1px solid rgba(123,241,168,.35);
+      color:#e3fff0;
+    }
+
+    .bad{
+      background:rgba(91,21,40,.68);
+      border:1px solid rgba(255,122,154,.35);
+      color:#ffe5ed;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:16px 24px;
+      font-size:18px;
+      font-weight:900;
+      background:linear-gradient(135deg,var(--gold),#ff9b5f);
+      color:#2f1532;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+    }
+
+    .btn.secondary{
+      background:linear-gradient(135deg,#d8efff,#b8d0ff);
+      color:#1d2441;
+      padding:10px 14px;
+      font-size:14px;
+    }
+
+    .start-wrap,.win-wrap{
+      min-height:calc(100vh - 36px);
+      display:grid;
+      place-items:center;
+    }
+
+    .start-box,.win-box{
+      width:min(980px,96vw);
+      padding:26px;
+      text-align:center;
+    }
+
+    .title{
+      font-size:52px;
+      font-weight:900;
+      margin:10px 0 12px;
+    }
+
+    .subtitle{
+      font-size:18px;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .intro-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-top:18px;
+    }
+
+    .essay-list{
+      text-align:left;
+      display:grid;
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .essay-item{
+      padding:16px;
+      border-radius:18px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.12);
+      line-height:1.6;
+    }
+
+    .cracks{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .18s ease;
+      z-index:3;
+    }
+    .cracks.show{opacity:1}
+
+    .shake{animation:shake .35s linear 2}
+    @keyframes shake{
+      0%{transform:translateX(0)}
+      25%{transform:translateX(-6px)}
+      50%{transform:translateX(6px)}
+      75%{transform:translateX(-4px)}
+      100%{transform:translateX(0)}
+    }
+
+    @media (max-width:980px){
+      .layout,.intro-grid{grid-template-columns:1fr}
+      .question{font-size:24px}
+      .title{font-size:38px}
+    }
+  </style>
 </head>
-<body style="font-family:Arial; text-align:center; background:#222; color:white;">
+<body>
+  <div class="curtain"></div>
+  <div class="floor"></div>
 
-<h1>Western Music History Game</h1>
-<button onclick="startGame()">Start quest</button>
+  <svg class="cracks" id="cracks" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <polyline points="5,5 18,26 27,21 39,44 52,32 68,63 78,48 95,72" stroke="white" stroke-width="0.4" fill="none"/>
+    <polyline points="14,88 23,74 36,71 44,52 58,58 67,37 79,41 93,14" stroke="white" stroke-width="0.35" fill="none"/>
+    <polyline points="48,0 50,22 44,36 52,50 46,70 55,100" stroke="white" stroke-width="0.32" fill="none"/>
+  </svg>
 
-<div id="game" style="margin-top:20px;"></div>
+  <div id="app" class="container"></div>
 
-<script>
-let q=0;
+  <script>
+    const questions = [
+      {id:1,section:"Section 1",q:"Which style is characterized by lightness, elegance, and periodic phrasing, serving as a reaction against the dense counterpoint of the Baroque?",a:["Empfindsam style","Galant style","Sturm und Drang","High Romanticism"],c:1},
+      {id:2,section:"Section 1",q:"Giovanni Battista Pergolesi’s La Serva Padrona was originally performed as:",a:["A full-length Opera Seria","A sacred oratorio","An intermezzo between acts of a serious opera","A Singspiel"],c:2},
+      {id:3,section:"Section 1",q:"In the aria 'Son imbrogliato già,' how do the dynamics and melody reflect the character Uberto’s state of mind?",a:["Constant loud dynamics representing his unwavering authority","Rapidly changing affects representing his inner confusion and conflicting emotions","Slow, minor-key melodies representing his deep tragic sorrow","Purely virtuosic scales intended only to show off the singer’s range"],c:1},
+      {id:4,section:"Section 1",q:"Which composer is most closely associated with the 'Empfindsam' (sentimental) style, often using 'melodic sighs' and sudden shifts in mood?",a:["Johann Stamitz","J.C. Bach","C.P.E. Bach","Domenico Scarlatti"],c:2},
+      {id:5,section:"Section 1",q:"In Domenico Scarlatti’s Sonata in D Major (K. 119), which technical feature is not typical of his 'brilliant' keyboard style?",a:["Large leaps","Hand-crossing","Rapid arpeggios","Strict fugal counterpoint throughout"],c:3},
+      {id:6,section:"Section 1",q:"Johann Stamitz is credited with being the first symphony composer to consistently:",a:["Use a 3-movement Italian overture structure","Use a 4-movement plan including a Minuet and Trio as the third movement","Include a chorus in the finale","Use a harpsichord as the lead instrument"],c:1},
+      {id:7,section:"Section 1",q:"The 'Mannheim Crescendo' refers to:",a:["A slow increase in volume by the whole orchestra over a pedal point","A specific type of vocal ornamentation","The increasing social status of musicians in Mannheim","A sudden shift from Major to Minor"],c:0},
+      {id:8,section:"Section 1",q:"Christoph Willibald Gluck’s 'Opera Reform' aimed primarily to:",a:["Increase the number of da capo arias to please star singers","Make the music serve the poetry and the drama, removing unnecessary ornamentation","Separate the orchestra from the stage action entirely","Return to the complex polyphony of the late Renaissance"],c:1},
+      {id:9,section:"Section 1",q:"In the preface to which opera did Gluck outline his vision for a 'unified, seamless dramatic experience'?",a:["Orfeo ed Euridice","Don Giovanni","Alceste","Iphigénie en Tauride"],c:2},
+      {id:10,section:"Section 1",q:"Which composer’s keyboard concertos combined the Baroque ritornello form with the emerging symphonic sonata form?",a:["J.S. Bach","J.C. Bach","Haydn","Pergolesi"],c:1},
+      {id:11,section:"Section 1",q:"Joseph Haydn spent nearly 30 years in the service of which noble family?",a:["The Medici","The Esterházy","The Hapsburgs","The Bourbons"],c:1},
+      {id:12,section:"Section 1",q:"Why is Haydn often called the 'Father of the Symphony'?",a:["He invented the genre from scratch","He established the standard 4-movement pattern and formal expectations","He was the first to use a conductor’s baton","He was the first to write symphonies for public sale only"],c:1},
+      {id:13,section:"Section 1",q:"In 18th-century Sonata Form, the section where the main themes are 'broken' or transformed through different keys is the:",a:["Exposition","Development","Recapitulation","Coda"],c:1},
+      {id:14,section:"Section 1",q:"Mozart’s 'Vienna Years' (1781–1791) are characterized by his status as a:",a:["Court-appointed Kapellmeister for life","Freelance musician, teacher, and performer","Church organist in Salzburg","Opera singer in Italy"],c:1},
+      {id:15,section:"Section 1",q:"Which Mozart opera is a Singspiel, featuring spoken dialogue instead of recitative?",a:["Don Giovanni","Le Nozze di Figaro","Die Zauberflöte (The Magic Flute)","Così fan tutte"],c:2},
+      {id:16,section:"Section 1",q:"The librettist for Mozart’s three greatest Italian comic operas (Figaro, Don Giovanni, Così) was:",a:["Metastasio","Lorenzo Da Ponte","Ranieri de' Calzabigi","Johann Wolfgang von Goethe"],c:1},
+      {id:17,section:"Section 1",q:"Mozart’s Symphony No. 40 in G Minor is often associated with the ________ style due to its agitated, emotional character.",a:["Galant","Empfindsam","Sturm und Drang","Biedermeier"],c:2},
+      {id:18,section:"Section 1",q:"Beethoven’s 'Heiligenstadt Testament' was:",a:["His last will and testament written on his deathbed","A letter to his brothers expressing his despair over his increasing deafness","A contract signed with his publishers","A manifesto on the French Revolution"],c:1},
+      {id:19,section:"Section 1",q:"The term Tondichter (Poet in Sound), which Beethoven preferred over Tonsetzer (Notesetter), signifies:",a:["A return to simple folk melodies","The shift from the composer as a craftsman to the composer as an inspired 'prophet' or artist","His refusal to write instrumental music","His focus on writing lyrics before music"],c:1},
+      {id:20,section:"Section 1",q:"Which German philosopher/writer’s idea of 'Organicism' (comparing a work of art to a living plant) deeply influenced Romantic musical form?",a:["Immanuel Kant","Johann Wolfgang von Goethe","Friedrich Nietzsche","Karl Marx"],c:1},
+      {id:21,section:"Section 1",q:"The term 'Philistine,' as used by Robert Schumann, referred to:",a:["A skilled professional musician","A person who refuses to see the value or beauty of innovative art/culture","A member of the high aristocracy","A student of law"],c:1},
+      {id:22,section:"Section 1",q:"Franz Schubert’s Lieder gatherings were known as:",a:["Schubert-fests","Schubertiades","The League of David","Musical Salons of Vienna"],c:1},
+      {id:23,section:"Section 1",q:"A 'Song Cycle' is:",a:["A single song repeated three times","A collection of songs unified by a common theme, story, or poet","A song that uses the same music for every stanza (strophic)","A technique where the singer rides a bicycle on stage"],c:1},
+      {id:24,section:"Section 1",q:"Felix Mendelssohn was a crucial figure in the 'Bach Revival' because he:",a:["Claimed to be Bach’s reincarnation","Conducted the first performance of Bach's St. Matthew Passion since the composer’s death","Rewrote all of Bach's music in a Romantic style","Invented the harpsichord"],c:1},
+      {id:25,section:"Section 1",q:"Robert Schumann’s magazine, used to advocate for high artistic standards, was titled:",a:["The Musical Times","Neue Zeitschrift für Musik (New Journal for Music)","The Romantic Review","Vienna Music Weekly"],c:1},
 
-const questions=[
-{q:"Which style is light and elegant?",a:["Empfindsam","Galant","Romantic"],c:1},
-{q:"Pergolesi work type?",a:["Opera","Intermezzo","Symphony"],c:1},
-{q:"Mozart singspiel?",a:["Don Giovanni","Magic Flute","Figaro"],c:1}
-];
+      {id:26,section:"Section 2: Listening",listening:true,piece:"Stamitz: Sinfonia 8 in E-flat major, Op. 11, No. 3 (Allegro Assai)",q:"Unlike earlier Italian overtures, Stamitz’s approach to the first movement Allegro is notable for:",a:["Eliminating the development section","Consistent use of a 4-movement plan and larger-scale structure without binary repetitions","Using only a solo violin","Constant minor key modulations"],c:1},
+      {id:27,section:"Section 2: Listening",listening:true,piece:"Haydn: String Quartet Op. 33, No. 2, Presto ('The Joke')",q:"What is the primary technical device Haydn uses to achieve the 'Joke' in the coda?",a:["He includes a literal joke in the score for the performers to read","He uses enigmatic rests and fragmented phrasing to subvert listener expectations of the 'ending'","He changes the key to one that sounds out of tune","The cello plays a solo in a range that is too high"],c:1},
+      {id:28,section:"Section 2: Listening",listening:true,piece:"Beethoven: Symphony No. 3 in E-Flat Major ('Eroica')",q:"In the first movement, the 'peak of dissonance' occurs in the development section (m. 276). What rhythmic/harmonic feature accompanies this?",a:["A sudden silence of 8 measures","Harsh sforzando chords on weak beats and a 'leaping figure' that disrupts the meter","A light flute solo playing a galant melody","A return to the opening tonic chord"],c:1},
+      {id:29,section:"Section 2: Listening",listening:true,piece:"Fanny Hensel (Mendelssohn): Das Jahr – 'December'",q:"This work belongs to which genre, and how does it reflect the composer’s environment?",a:["It is a character piece for piano; it reflects her limited ability to publish professionally due to social constraints","It is a full symphony; it reflects her status as a court composer","It is an opera aria; it reflects her success on the stage","It is a sacred mass; it reflects her religious devotion"],c:0},
+      {id:30,section:"Section 2: Listening",listening:true,piece:"Felix Mendelssohn: Die Hebriden",q:"As a 'Concert Overture,' how does this work differ from a traditional opera overture?",a:["It is much shorter (less than 1 minute)","It is a self-contained orchestral work meant for concert performance, depicting a specific landscape/mood","It requires a full cast of singers","It is always based on a comic libretto"],c:1},
+      {id:31,section:"Section 2: Listening",listening:true,piece:"Schubert: 'Gretchen am Spinnrade'",q:"How does the piano accompaniment function in this Lied?",a:["It is purely decorative and has no connection to the text","It mimics the mechanical rotation of a spinning wheel and Gretchen’s internal agitation","It acts as a second voice singing the same melody","It plays a trumpet-like fanfare to announce the arrival of Faust"],c:1},
+      {id:32,section:"Section 2: Listening",listening:true,piece:"Berlioz: Symphonie Fantastique, Movement 5",q:"In this symphony, there is a repeated motif that symbolizes the hero's obsession with his beloved. What is it called?",a:["Leitmotif","Idée Fixe","Basso Continuo","Ritornello"],c:1},
+      {id:33,section:"Section 2: Listening",q:"The Symphonie Fantastique was a critical and influential work. Which composer was among the first to praise it in his critical writings?",a:["Joseph Haydn","Robert Schumann","J.S. Bach","Domenico Scarlatti"],c:1},
+      {id:34,section:"Section 2: Listening",listening:true,piece:"Beethoven: String Quartet in C Sharp Minor, Op. 131",q:"In the first movement (Adagio ma non troppo e molto espressivo), Beethoven uses which form to create an introspective mood?",a:["A light Rondo","A fugue with a highly expressive, chromatic subject","A theme and variations on a folk song","A dance-like Minuet"],c:1},
+      {id:35,section:"Section 2: Listening",listening:true,piece:"Schumann: Carnaval Op. 9",q:"Which of these accurately describes the characters 'Eusebius' and 'Florestan' in this cycle?",a:["Two singers in a comic opera","Two rival publishers in Leipzig","Two sides of Schumann's own personality: the dreamer/introspective and the passionate/impulsive","Two historical figures from the French Revolution"],c:2},
+      {id:36,section:"Section 2: Listening",listening:true,piece:"Schumann: Carnaval – 'Sphinxes'",q:"What is the significance of the 'Sphinxes' in Carnaval?",a:["They are actual movements intended to be played very loudly","They are musical ciphers (notes representing letters) that provide a hidden structural link to the work","They are physical drawings in the score with no musical meaning","They represent Schumann’s interest in ancient Egyptian music"],c:1},
+      {id:37,section:"Section 2: Listening",q:"In Schumann’s aesthetics, 'Witz' (not to be confused with Haydn's 'Wit') refers to:",a:["Telling jokes between movements","The ability to perceive and create subtle, 'fragmented' connections between seemingly disparate musical ideas","A very fast tempo marking","A specific type of piano pedal technique"],c:1},
+      {id:38,section:"Section 2: Listening",listening:true,piece:"Schumann: 'Marche des Davidsbündler contre les Philistines'",q:"This finale of Carnaval represents:",a:["A real battle that occurred in 1835","The imaginary 'League of David' overcoming the conservative 'Philistines' of the music world","A traditional wedding march","A funeral procession for Robert’s father"],c:1},
+      {id:39,section:"Section 2: Listening",listening:true,piece:"Beethoven: Op. 131, Second Movement",q:"The second movement of Op. 131 follows the first movement without a break (attacca). What is its character?",a:["A dark, tragic funeral march","A light, folk-like Allegro molto vivace in 6/8 time","A massive choral finale","A complex fugue twice as long as the first"],c:1},
+      {id:40,section:"Section 2: Listening",listening:true,piece:"Chopin: Mazurka Op. 7, No. 1",q:"In this Mazurka, the use of 'Rubato' is intended to:",a:["Keep a metronomic, strict time","Allow for 'stolen time' where the performer can expressively flex the rhythm","Force the left hand to play faster than the right","Eliminate the melody entirely"],c:1},
 
-function startGame(){
-q=0;
-showQ();
-}
+      {id:41,section:"Section 3",q:"In the first movement of Mozart’s Piano Sonata in F Major (K. 332), at what measure does the 'Sturm und Drang' transition begin?",a:["m. 1","m. 22","m. 94","m. 143"],c:1},
+      {id:42,section:"Section 3",q:"In Beethoven’s Sonata Pathétique (Op. 13), which movement uses 'Sonata-Rondo' form (ABACABA)?",a:["First Movement","Second Movement","Third Movement (Finale)","None of the above"],c:2},
+      {id:43,section:"Section 3",q:"Which technique does Berlioz use in the 5th movement of Symphonie Fantastique to transform the 'Idée Fixe'?",a:["He makes it sound like a trivial, grotesque dance in the E-flat clarinet","He has the choir sing it in Latin","He removes it entirely from the movement","He plays it on a solo harpsichord"],c:0},
+      {id:44,section:"Section 3",q:"Fanny Hensel's father (Abraham Mendelssohn) believed music should be:",a:["A woman’s primary professional pursuit","An 'ornament' to household life rather than a career for a woman of her status","Banned from the home","Played only by men"],c:1},
+      {id:45,section:"Section 3",q:"The 'Mannheim Rocket' is characterized by:",a:["A rapidly descending scale in the woodwinds","A rapidly ascending broken chord (arpeggio) with a crescendo","A sudden loud crash on the cymbals","A slow, lugubrious cello solo"],c:1},
+      {id:46,section:"Section 3",q:"In Gluck's Orfeo ed Euridice, the use of the harp and the 'pleading' minor mode (in E-flat major transitions) helps to differentiate:",a:["Orfeo’s human emotion from the harsh, dissonant 'No!' of the Furies","The sound of the birds in the forest","The different types of woodwind instruments","The arrival of the King of the Underworld"],c:0},
+      {id:47,section:"Section 3",q:"Robert Schumann’s 'Organicism' suggests that a musical work:",a:["Should be made of organic materials like wood","Should grow from a single musical 'seed' or motive, unified like a living plant","Should only be played in gardens","Should never have more than one movement"],c:1},
+      {id:48,section:"Section 3",q:"Beethoven’s 'Middle Period' is often called 'Heroic' because:",a:["He composed music for real-life heroes only","His music of this time features large-scale works that suggest a narrative of struggle and triumph","He became a soldier in 1804","He wrote mostly military marches"],c:1},
+      {id:49,section:"Section 3",q:"C.P.E. Bach’s Sonaten für Kenner und Liebhaber was composed for:",a:["Beginners only","'Connoisseurs and Amateurs' (Kenner und Liebhaber)","The Pope","Professional opera singers only"],c:1},
+      {id:50,section:"Section 3",q:"In the 'Dream of a Witches’ Sabbath,' Berlioz uses which technique on the strings to create an 'uncanny' sound (m. 444)?",a:["Pizzicato (plucking)","Col legno (striking the strings with the wood of the bow)","Sul ponticello (playing near the bridge)","Glissando (sliding between notes)"],c:1}
+    ];
 
-function showQ(){
-let html="<h2>"+questions[q].q+"</h2>";
-questions[q].a.forEach((ans,i)=>{
-html+="<button onclick='check("+i+")'>"+ans+"</button><br><br>";
-});
-document.getElementById("game").innerHTML=html;
-}
+    const essayPrompts = [
+      "I. Discuss the role of the Idée Fixe in Berlioz’s Symphonie Fantastique. How does its transformation throughout the five movements serve the 'autobiographical program'? Mention specifically its treatment in the 5th movement compared to the 1st.",
+      "II. Explain Robert Schumann’s concept of the League of David (Davidsbündler) and the Philistines. How are these concepts musically represented in the finale of Carnaval (Marche des Davidsbündler contre les Philistines)?"
+    ];
 
-function check(i){
-if(i===questions[q].c){
-q++;
-if(q>=questions.length){
-document.getElementById("game").innerHTML="<h2>YOU WIN 🎉</h2>";
-}else{
-showQ();
-}
-}else{
-alert("Wrong! Back to start.");
-startGame();
-}
-}
-</script>
+    const figaroHints = [
+      "Think style, not just mood.",
+      "Ask what the term historically does.",
+      "If it is spoken dialogue, suspect Singspiel.",
+      "Berlioz usually rewards programmatic reading.",
+      "Schumann likes hidden structures and personas.",
+      "Form questions often hinge on function."
+    ];
 
+    let audioCtx = null;
+    function beep(freq, duration, type="sine", gainValue=0.04){
+      try{
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = gainValue;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+      }catch(e){}
+    }
+    function playCorrectSound(){
+      beep(660,0.12,"triangle",0.05);
+      setTimeout(()=>beep(880,0.16,"triangle",0.05),90);
+    }
+    function playWrongSound(){
+      beep(220,0.18,"sawtooth",0.05);
+      setTimeout(()=>beep(165,0.24,"sawtooth",0.05),120);
+    }
+
+    function shuffle(arr){
+      const a = [...arr];
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    }
+
+    function prepareQuestions(){
+      return questions.map((q,qi)=>{
+        const answers = q.a.map((text,i)=>({text, correct:i===q.c, id:`${qi}-${i}`}));
+        return {...q, answers:shuffle(answers)};
+      });
+    }
+
+    let game = null;
+    let audioStore = JSON.parse(localStorage.getItem("wmhq_audio_store") || "{}");
+
+    function currentHint(){
+      if(!game) return figaroHints[0];
+      return figaroHints[game.idx % figaroHints.length];
+    }
+
+    function showCracks(on){
+      document.getElementById("cracks").classList.toggle("show", !!on);
+    }
+
+    function saveAudioForQuestion(qid, file){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        audioStore[qid] = e.target.result;
+        localStorage.setItem("wmhq_audio_store", JSON.stringify(audioStore));
+        renderGame();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearAudioForQuestion(qid){
+      delete audioStore[qid];
+      localStorage.setItem("wmhq_audio_store", JSON.stringify(audioStore));
+      renderGame();
+    }
+
+    function renderStart(){
+      document.getElementById("app").innerHTML = `
+        <div class="start-wrap">
+          <div class="start-box panel">
+            <div class="small">Interactive quiz game</div>
+            <div class="title">Western Music History Quest — Full Exam</div>
+            <div class="subtitle">
+              This version includes all 50 multiple-choice questions. Listening questions include an upload slot,
+              so you can attach your own audio sample directly inside the game.
+            </div>
+
+            <div class="intro-grid">
+              <div class="panel char charcard figaro">
+                <div class="role">Guide</div>
+                <div class="name">Figaro</div>
+                <div class="figure figaro">
+                  <div class="avatar">🎭</div>
+                </div>
+                <div class="bubble hint"><b>Figaro hint:</b> Clever students listen before they answer.</div>
+              </div>
+
+              <div class="panel char charcard devil">
+                <div class="role">Rival</div>
+                <div class="name">Devil</div>
+                <div class="figure devil">
+                  <div class="avatar">😈</div>
+                  <div class="devil-eye left"></div>
+                  <div class="devil-eye right"></div>
+                </div>
+                <div class="bubble">One mistake. Back to the overture.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:18px;">
+              <button class="btn" onclick="startGame()">Start quest</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function startGame(){
+      game = {
+        qs: prepareQuestions(),
+        idx: 0,
+        score: 0,
+        streak: 0,
+        locked: false,
+        speaker: "Figaro",
+        feedback: ""
+      };
+      renderGame();
+    }
+
+    function renderGame(){
+      const q = game.qs[game.idx];
+      const progress = (game.idx / game.qs.length) * 100;
+      const feedbackClass = game.feedback ? (game.feedback.includes("Wrong") ? "bad" : "good") : "";
+      const audioHtml = q.listening ? `
+        <div class="audio-box">
+          <div class="small">Listening sample slot</div>
+          <div style="margin-top:6px; font-weight:700;">${q.piece || "Listening excerpt"}</div>
+          <div class="audio-row">
+            <input type="file" accept="audio/*" onchange="if(this.files[0]) saveAudioForQuestion('${q.id}', this.files[0])">
+            ${audioStore[q.id] ? `<button class="btn secondary" onclick="clearAudioForQuestion('${q.id}')">Remove sample</button>` : ``}
+          </div>
+          <div class="audio-row">
+            ${audioStore[q.id] ? `<audio controls src="${audioStore[q.id]}"></audio>` : `<span class="small">No sample attached yet.</span>`}
+          </div>
+        </div>
+      ` : "";
+
+      document.getElementById("app").innerHTML = `
+        <div class="${game.feedback.includes("Wrong") ? "shake" : ""}">
+          <div class="topbar panel">
+            <div class="progress-wrap">
+              <div class="small">Question ${game.idx + 1} / ${game.qs.length}</div>
+              <div class="bar"><div class="fill" style="width:${progress}%"></div></div>
+            </div>
+            <div class="stats">
+              <div class="pill"><span class="small">Score</span><b>${game.score}</b></div>
+              <div class="pill"><span class="small">Streak</span><b>${game.streak}</b></div>
+              <div class="pill"><span class="small">Zone</span><b style="font-size:15px">${q.section}</b></div>
+            </div>
+          </div>
+
+          <div class="layout">
+            <div class="panel char figaro">
+              <div class="role">Guide</div>
+              <div class="name">Figaro</div>
+              <div class="figure figaro">
+                <div class="avatar">🎭</div>
+              </div>
+              <div class="bubble hint"><b>Figaro hint:</b> ${currentHint()}</div>
+            </div>
+
+            <div class="panel center">
+              <div class="dialogue"><b>${game.speaker}</b>: ${game.feedback || `Trial ${game.idx + 1}: ${q.section}`}</div>
+
+              <div class="qbox">
+                <div class="section">${q.section}</div>
+                ${q.piece ? `<div class="piece">${q.piece}</div>` : ``}
+                <div class="question">${q.q}</div>
+              </div>
+
+              ${audioHtml}
+
+              <div class="answers">
+                ${q.answers.map((ans,i)=>`
+                  <button class="answer" ${game.locked ? "disabled" : ""} onclick="pick(${i})">
+                    ${String.fromCharCode(65+i)}. ${ans.text}
+                  </button>
+                `).join("")}
+              </div>
+
+              <div class="feedback ${feedbackClass}">${game.feedback || "Choose wisely."}</div>
+            </div>
+
+            <div class="panel char devil">
+              <div class="role">Rival</div>
+              <div class="name">Devil</div>
+              <div class="figure devil">
+                <div class="avatar">😈</div>
+                <div class="devil-eye left"></div>
+                <div class="devil-eye right"></div>
+              </div>
+              <div class="bubble">Miss once. Back to the overture.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWin(){
+      document.getElementById("app").innerHTML = `
+        <div class="win-wrap">
+          <div class="win-box panel">
+            <div class="small">Victory screen</div>
+            <div class="title">Curtain Call 🎭</div>
+            <div class="subtitle">
+              You cleared all ${game.qs.length} auto-graded questions without collapsing the stage.
+            </div>
+
+            <div class="stats" style="justify-content:center; margin-top:18px;">
+              <div class="pill"><span class="small">Final score</span><b>${game.score}</b></div>
+              <div class="pill"><span class="small">Streak</span><b>${game.streak}</b></div>
+              <div class="pill"><span class="small">Status</span><b>Cleared</b></div>
+            </div>
+
+            <div class="essay-list">
+              ${essayPrompts.map((p,i)=>`
+                <div class="essay-item">
+                  <b>Bonus Essay ${i+1}</b><br>${p}
+                </div>
+              `).join("")}
+            </div>
+
+            <div style="margin-top:18px;">
+              <button class="btn" onclick="startGame()">Play again</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function pick(i){
+      if(game.locked) return;
+      const q = game.qs[game.idx];
+      const chosen = q.answers[i];
+      game.locked = true;
+
+      if(chosen.correct){
+        game.score += 1;
+        game.streak += 1;
+        game.speaker = "Figaro";
+        game.feedback = "Correct. The curtain rises for the next scene.";
+        playCorrectSound();
+        renderGame();
+
+        setTimeout(()=>{
+          if(game.idx === game.qs.length - 1){
+            renderWin();
+            return;
+          }
+          game.idx += 1;
+          game.feedback = "";
+          game.locked = false;
+          renderGame();
+        }, 900);
+      } else {
+        game.speaker = "Devil";
+        game.feedback = "Wrong. The stage cracks, the orchestra panics, and you return to question 1.";
+        playWrongSound();
+        renderGame();
+        showCracks(true);
+
+        setTimeout(()=>{
+          game.qs = prepareQuestions();
+          game.idx = 0;
+          game.score = 0;
+          game.streak = 0;
+          game.feedback = "";
+          game.locked = false;
+          game.speaker = "Figaro";
+          showCracks(false);
+          renderGame();
+        }, 1200);
+      }
+    }
+
+    renderStart();
+  </script>
 </body>
 </html>
