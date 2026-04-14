@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Music Game</title>
+</head>
+<body style="font-family:Arial; text-align:center; background:#222; color:white;">
+
+<h1>Western Music History Game</h1>
+<button onclick="startGame()">Start quest</button>
+
+<div id="game" style="margin-top:20px;"></div>
+
+<script>
+let q=0;
+
+const questions=[
+{q:"Which style is light and elegant?",a:["Empfindsam","Galant","Romantic"],c:1},
+{q:"Pergolesi work type?",a:["Opera","Intermezzo","Symphony"],c:1},
+{q:"Mozart singspiel?",a:["Don Giovanni","Magic Flute","Figaro"],c:1}
+];
+
+function startGame(){
+q=0;
+showQ();
+}
+
+function showQ(){
+let html="<h2>"+questions[q].q+"</h2>";
+questions[q].a.forEach((ans,i)=>{
+html+="<button onclick='check("+i+")'>"+ans+"</button><br><br>";
+});
+document.getElementById("game").innerHTML=html;
+}
+
+function check(i){
+if(i===questions[q].c){
+q++;
+if(q>=questions.length){
+document.getElementById("game").innerHTML="<h2>YOU WIN 🎉</h2>";
+}else{
+showQ();
+}
+}else{
+alert("Wrong! Back to start.");
+startGame();
+}
+}
+</script>
+
+</body>
+</html>
